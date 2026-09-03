@@ -522,6 +522,14 @@ int wmain(int argc, wchar_t* argv[])
     // environment as directly launched child process.
     // --------------------------------------------------------
 
+    BOOL hasConsole = GetConsoleWindow() != NULL;
+
+    DWORD creationFlags = 0;
+    if (!hasConsole)
+    {
+        creationFlags = CREATE_NO_WINDOW;
+    }
+
     BOOL created = CreateProcessW(
         realExecutable.wstring().c_str(),
 
@@ -530,7 +538,7 @@ int wmain(int argc, wchar_t* argv[])
         nullptr,          // process attributes
         nullptr,          // thread attributes
         TRUE,             // inherit handles
-        CREATE_NO_WINDOW, // creation flags
+        creationFlags,    // dynamic flags
         nullptr,          // environment
         nullptr,          // current directory
         &si,
