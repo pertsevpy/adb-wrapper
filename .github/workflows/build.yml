@@ -1,4 +1,3 @@
-```yaml
 name: Build Windows Wrapper
 
 on:
@@ -57,5 +56,4 @@ jobs:
           path: wrapper.exe
           if-no-files-found: error
           retention-days: 30
-```
 
