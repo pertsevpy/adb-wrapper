@@ -527,19 +527,13 @@ int wmain(int argc, wchar_t* argv[])
 
         commandBuffer.data(),
 
-        nullptr,        // process attributes
-        nullptr,        // thread attributes
-
-        TRUE,           // inherit handles
-
-        0,              // creation flags
-
-        nullptr,        // environment
-
-        nullptr,        // current directory
-
+        nullptr,          // process attributes
+        nullptr,          // thread attributes
+        TRUE,             // inherit handles
+        CREATE_NO_WINDOW, // creation flags
+        nullptr,          // environment
+        nullptr,          // current directory
         &si,
-
         &pi
     );
 
