@@ -46,7 +46,7 @@ cl.exe `
     /D_UNICODE `
     .\wrapper.cpp `
     /link `
-    /SUBSYSTEM:WINDOWS `
+    /SUBSYSTEM:CONSOLE `
     /OUT:wrapper.exe
 
 if ($LASTEXITCODE -ne 0) {
