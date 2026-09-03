@@ -1,0 +1,61 @@
+```yaml
+name: Build Windows Wrapper
+
+on:
+  push:
+    branches:
+      - "**"
+
+  pull_request:
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build wrapper.exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Show compiler version
+        shell: pwsh
+        run: |
+          cl
+
+      - name: Build
+        shell: pwsh
+        run: |
+          .\build.ps1
+
+      - name: Verify executable
+        shell: pwsh
+        run: |
+          if (-not (Test-Path ".\wrapper.exe")) {
+              Write-Error "wrapper.exe was not created"
+              exit 1
+          }
+
+          $file = Get-Item ".\wrapper.exe"
+
+          Write-Host "File: $($file.FullName)"
+          Write-Host "Size: $($file.Length) bytes"
+
+          Get-FileHash ".\wrapper.exe" -Algorithm SHA256
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: adb-fastboot-wrapper-windows-x64
+          path: wrapper.exe
+          if-no-files-found: error
+          retention-days: 30
+```
+
