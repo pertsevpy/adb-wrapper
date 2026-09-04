@@ -44,8 +44,11 @@ jobs:
           $zip = "$env:TEMP\platform-tools.zip"
           Invoke-WebRequest -Uri $url -OutFile $zip
           Expand-Archive -Path $zip -DestinationPath "$env:TEMP\platform-tools"
-          Copy-Item "$env:TEMP\platform-tools\platform-tools\adb.exe" -Destination ".\adb.real.exe"
-          Copy-Item "$env:TEMP\platform-tools\platform-tools\fastboot.exe" -Destination ".\fastboot.real.exe"
+          # Копируем все файлы из папки platform-tools в текущую папку
+          Copy-Item "$env:TEMP\platform-tools\platform-tools\*" -Destination "." -Recurse
+          # Переименовываем adb.exe и fastboot.exe в .real.exe
+          Rename-Item ".\adb.exe" "adb.real.exe"
+          Rename-Item ".\fastboot.exe" "fastboot.real.exe"
       - name: Prepare wrappers
         shell: pwsh
         run: |
