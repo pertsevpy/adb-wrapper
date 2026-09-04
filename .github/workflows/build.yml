@@ -1,12 +1,9 @@
-name: Build Windows Wrapper
+name: Build and Test
 
 on:
   push:
-    branches:
-      - "**"
-
+    branches: [ "**" ]
   pull_request:
-
   workflow_dispatch:
 
 permissions:
@@ -16,43 +13,44 @@ jobs:
   build:
     name: Build wrapper.exe
     runs-on: windows-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Show compiler version
-        shell: pwsh
-        run: |
-          cl
-
+      - uses: actions/checkout@v6
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Build
         shell: pwsh
-        run: |
-          .\build.ps1
-
-      - name: Verify executable
-        shell: pwsh
-        run: |
-          if (-not (Test-Path ".\wrapper.exe")) {
-              Write-Error "wrapper.exe was not created"
-              exit 1
-          }
-
-          $file = Get-Item ".\wrapper.exe"
-
-          Write-Host "File: $($file.FullName)"
-          Write-Host "Size: $($file.Length) bytes"
-
-          Get-FileHash ".\wrapper.exe" -Algorithm SHA256
-
-      - name: Upload build artifact
+        run: .\build.ps1
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: adb-fastboot-wrapper-windows-x64
+          name: wrapper
           path: wrapper.exe
-          if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
+
+  test:
+    name: Test wrapper
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wrapper
+          path: .
+      - name: Download official adb/fastboot
+        shell: pwsh
+        run: |
+          $url = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
+          $zip = "$env:TEMP\platform-tools.zip"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath "$env:TEMP\platform-tools"
+          Copy-Item "$env:TEMP\platform-tools\platform-tools\adb.exe" -Destination ".\adb.real.exe"
+          Copy-Item "$env:TEMP\platform-tools\platform-tools\fastboot.exe" -Destination ".\fastboot.real.exe"
+      - name: Prepare wrappers
+        shell: pwsh
+        run: |
+          Copy-Item ".\wrapper.exe" -Destination ".\adb.exe"
+          Copy-Item ".\wrapper.exe" -Destination ".\fastboot.exe"
+      - name: Run tests
+        shell: pwsh
+        run: .\test.ps1
